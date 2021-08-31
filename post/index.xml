@@ -5,11 +5,20 @@
     <link>https://makrusali.github.io/post/</link>
     <description>Recent content in Posts on Makrus Ali</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 29 Apr 1970 08:53:41 +0700</lastBuildDate><atom:link href="https://makrusali.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 31 Aug 2021 20:47:55 +0700</lastBuildDate><atom:link href="https://makrusali.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Liquid Crystal Display 16x2 (HD44780)</title>
+      <link>https://makrusali.github.io/post/lcd-16x2/</link>
+      <pubDate>Tue, 31 Aug 2021 20:47:55 +0700</pubDate>
+      
+      <guid>https://makrusali.github.io/post/lcd-16x2/</guid>
+      <description>Catatan tentang LCD 16x2 HD44780</description>
+    </item>
+    
     <item>
       <title>Bahasa pemograman C&#43;&#43;</title>
       <link>https://makrusali.github.io/post/bahasa-c&#43;&#43;/</link>
-      <pubDate>Wed, 29 Apr 1970 08:53:41 +0700</pubDate>
+      <pubDate>Mon, 30 Aug 2021 21:18:47 +0700</pubDate>
       
       <guid>https://makrusali.github.io/post/bahasa-c&#43;&#43;/</guid>
       <description>Sejarah singkat dari Bahasa Pemograman C&#43;&#43;</description>

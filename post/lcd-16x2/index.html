@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Liquid Crystal Display 16x2 (HD44780) | Makrus Ali</title>
+<meta name="keywords" content="LCD, Electronics" />
+<meta name="description" content="Catatan tentang LCD 16x2 HD44780">
+<meta name="author" content="Makrus Ali">
+<link rel="canonical" href="https://makrusali.github.io/post/lcd-16x2/" />
+<link crossorigin="anonymous" href="/assets/css/stylesheet.min.b9ff4cc257e914dab489bd18086151800e18f91456a5174bf28489210227a659.css" integrity="sha256-uf9MwlfpFNq0ib0YCGFRgA4Y&#43;RRWpRdL8oSJIQInplk=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js" integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5&#43;kdJvBz5iKbt6B5PJI="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="https://makrusali.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://makrusali.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://makrusali.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://makrusali.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://makrusali.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<meta name="generator" content="Hugo 0.87.0" />
+<meta property="og:title" content="Liquid Crystal Display 16x2 (HD44780)" />
+<meta property="og:description" content="Catatan tentang LCD 16x2 HD44780" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://makrusali.github.io/post/lcd-16x2/" />
+<meta property="og:image" content="https://makrusali.github.io/%3Cimage%20path/url%3E" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2021-08-31T20:47:55&#43;07:00" />
+<meta property="article:modified_time" content="2021-08-31T20:47:55&#43;07:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://makrusali.github.io/%3Cimage%20path/url%3E" />
+<meta name="twitter:title" content="Liquid Crystal Display 16x2 (HD44780)"/>
+<meta name="twitter:description" content="Catatan tentang LCD 16x2 HD44780"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://makrusali.github.io/post/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Liquid Crystal Display 16x2 (HD44780)",
+      "item": "https://makrusali.github.io/post/lcd-16x2/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Liquid Crystal Display 16x2 (HD44780)",
+  "name": "Liquid Crystal Display 16x2 (HD44780)",
+  "description": "Catatan tentang LCD 16x2 HD44780",
+  "keywords": [
+    "LCD", "Electronics"
+  ],
+  "articleBody": "Catatan mencoba LCD(Liquid Crystal Display) 16x2 (HD44780)\nReferensi tulisan Datasheet HD44780 Datasheet LCD16x2 pinout web.alfredstate.edu/faculty/weimandn/ mil.ufl.edu/3744/docs/lcdmanual/commands.html www.handsonembedded.com Pin Out    Nomor Pin Nama Pin Deskripsi     1 Vss (Ground) Pin Ground pada Lcd   2 Vdd (+5V) Pin sumber +5V pada LCD   3 VE,VO (Kontrast Volt) Pin untuk adjusment (mengatur) kontrast pada LCD, semakin tegangan mendekati Ground maka kontrast akan semakin tinggi, maka pada saat pin ini dihubungkan langsung pada pin Ground kontrast akan berada pada posisi Maksimum   4 RS (Register Select) Pin yang digunakan unutk memilih mode Command(perintah) atau Data(data), 0 = Command mode - 1 = Data mode   5 RW (Read Write) Pin yang digunakan untuk memilih antara membaca data dari LCD atau menulis data ke LCD, sering dijumpai pin ini langsung dihubungkan ke Ground karena yang diperlukan hanya menampilkan (menulis data ke LCD), 0 = Write - 1 = Read   6 En (Enable) Pin yang digunakan untuk pengakuan data, (Falling Edge Triggered) ketika mendapatkan sinyal jatuh dari kondisi 1 ke 0, maka data pada pin data akan diakui (diterima) oleh LCD   7 Data Pin 0 Pin data bit ke 0 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )   8 Data Pin 1 Pin data bit ke 1 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )   9 Data Pin 2 Pin data bit ke 2 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )   10 Data Pin 3 Pin data bit ke 3 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )   11 Data Pin 4 Pin data bit ke 4   12 Data Pin 5 Pin data bit ke 5   13 Data Pin 6 Pin data bit ke 6   14 Data Pin 7 Pin data bit ke 7   15 A (Anode Led) Pin untuk LED Back-light bagian Anode(+) (Cahaya Belakang)   16 K (Cathode Led) Pin untuk LED Back-light bagian Cathode(-) (Cahaya Belakang)    Intruksi  Clear Display - Hapus Tampilan    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 0 0 0 0 0 0 1    Menghapus semua tampilan dan mengembalikan kursor ke posisi awal (Alamat 0)\n Return Home - Kembali ke Rumah    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 0 0 0 0 0 1 -    Mengembalikan kursor ke posisi awal (Alamat 0), Mengembalikan tampilan ke keadaan semula jika digeser, data pada LCD tidak akan berubah\n Entry Mode Set - set mode masuk    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 0 0 0 0 1 I/D S    Menyetel efek operasi baca atau tulis DD RAM berikutnya. Mengatur arah pergerakan kursor dan menentukan atau tidak menggeser tampilan. Operasi ini dilakukan selama membaca dan menulis data.\nI/D (Increment/Decrement) : Menentukan apakah akan menambah (I/D = 1) atau mengurangi (I/D = 0) penghitung alamat setelah operasi baca atau tulis DDRAM berikutnya.\nS (Shift) : Jika S = 1 tampilan akan digeser ke kiri (jika I/D = 1) atau ke kanan (jika I/D = 0) pada operasi tulis DDRAM berikutnya. Ini membuatnya tampak seolah-olah kursor berdiri diam dan tampilan bergerak ketika setiap karakter ditulis ke DD RAM. jika S = 0 tampilan tidak akan bergeser pada operasi penulisan DDRAM berikutnya.\n Display ON/OFF - Tampilan ON/OFF    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 0 0 0 0 D C B    D (Display) : Tampilan ON saat D = 1 dan OFF saat D = 0. data pada DDRAM tetap/tidak berubah.\nC (Cursor) : Kursor ditampilkan saat C = 1 dan tidak ditampilkan saat C = 0. Kursor ditampilkan sebagai 5 titik di baris ke-8 saat font karakter 5 x 7 titik dipilih dan sebagai 5 titik di baris ke-11 saat Font karakter 5 x 10 titik dipilih.\nB (Blink) : Karakter pada posisi kursor berkedip saat B = 1, kursor tidak berkedip saat B = 0 Berkedip dilakukan dengan beralih di antara semua titik kosong dan karakter tampilan setiap 409,6 ms\n Cursor or display shift - Cursor atau Geser Tampilan    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 0 0 S C R/L - -    Memindahkan kursor dan menggeser tampilan tanpa mengubah isi DD RAM\n Function Set - Set Fungsi    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 0 0 DL N F - -    Mengatur panjang data antarmuka (DL), jumlah baris tampilan (N) dan font karakter (F)\nPerintah ini harus dikeluarkan hanya setelah inisialisasi penyalaan otomatis terjadi, atau sebagai bagian dari urutan inisialisasi modul. DL: Mengatur panjang data antarmuka\nData dikirim atau diterima dalam panjang 8 bit (DB7-DB0) ketika DL = 1 Data dikirim atau diterima dalam panjang 4 bit (DB7-DB4) saat DL = 0\nKetika panjang 4 bit dipilih, data harus dikirim atau diterima dalam pasangan masing-masing 4 bit. 4 bit paling signifikan (High Nible) dikirim atau diterima terlebih dahulu.\nN: Mengatur jumlah garis tampilan, N = 1 : 2 Baris - N = 0 : 1 Baris\nF: Mengatur font karakter, F = 1: 5 × 10 dots - F = 0: 5 × 8 dots\n Set GCRAM Adrres - Set alamat GCRAM    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 0 1 A A A A A A    Menetapkan nilai yang ditentukan (AAAAAA) ke dalam penghitung alamat. Operasi baca atau tulis selanjutnya mentransfer data dari, atau ke, RAM pembangkit karakter.\n Set DDRAM Adrres - Set alamat DDRAM    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 1 A A A A A A A    Menyetel alamat DDRAM. Baca atau tulis selanjutnya mengacu pada DDRAM.\nMenetapkan nilai yang ditentukan (AAAAAAA) ke dalam penghitung alamat. Operasi baca atau tulis selanjutnya mentransfer data dari, atau ke, RAM tampilan. Catatan: Lokasi RAM tampilan yang berdekatan tidak selalu mengacu pada posisi tampilan yang berdekatan.\n Read busy flag \u0026 address - Baca bendera sibuk dan penghitung alamat    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 1 BF A A A A A A A    Membaca status dari busy flag (BF) dan isi dari address counter.\nDetail Membaca tanda sibuk (BF) yang menunjukkan status modul LCD. BF = 1 menunjukkan bahwa modul sedang sibuk memproses perintah sebelumnya. BF = 0 menunjukkan bahwa modul siap untuk melakukan perintah lain.\nNilai penghitung alamat juga dikembalikan. Penghitung alamat yang sama digunakan untuk transfer CG dan DD RAM.\nPerintah ini dapat dikeluarkan kapan saja. Ini adalah satu-satunya perintah yang akan diterima modul LCD saat perintah sebelumnya masih diproses.\n Write data to CG or DD RAM - tulis data ke CG atau DD RAM    RS RW D7 D6 D5 D4 D3 D2 D1 D0     0 0 D D D D D D D D    Menulis satu byte (DDDDDDDD) ke CG atau DD RAM. Tujuan (CG RAM atau DD RAM) ditentukan oleh perintah `Set RAM Address' terbaru. Lokasi dimana byte akan ditulis adalah nilai penghitung alamat saat ini. Setelah byte ditulis, penghitung alamat secara otomatis bertambah atau berkurang sesuai dengan mode entri. Mode entri juga menentukan apakah tampilan akan bergeser atau tidak.\n Read data from CG or DD RAM - baca data ke CG atau DD RAM    RS RW D7 D6 D5 D4 D3 D2 D1 D0     1 1 D D D D D D D D    Membaca satu byte (DDDDDDDD) dari CG atau DD RAM. Sumber (CG RAM atau DD RAM) ditentukan oleh perintah `Set RAM Address' terbaru. Lokasi dari mana byte akan dibaca adalah nilai penghitung alamat saat ini. Setelah byte reda, penghitung alamat secara otomatis bertambah atau berkurang sesuai dengan mode entri.\n Keterangan :\nI/D = 1: Increment I/D = 0: Decrement S = 1: Accompanies display shift S/C = 1: Display shift S/C = 0: Cursor move R/L = 1: Shift to the right R/L = 0: Shift to the left DL = 1: 8 bits, DL = 0: 4 bits N = 1: 2 lines, N = 0: 1 line F = 1: 5 × 10 dots, F = 0: 5 × 8 dots BF = 1: Internally operating BF = 0: Instructions acceptable DDRAM: Display data RAM CGRAM: Character generator RAM ACG: CGRAM address ADD: DDRAM address (corresponds to cursor address) AC: Address counter used for both DD and Inisialisasi note : belum selesai\n",
+  "wordCount" : "1366",
+  "inLanguage": "en",
+  "image":"https://makrusali.github.io/%3Cimage%20path/url%3E","datePublished": "2021-08-31T20:47:55+07:00",
+  "dateModified": "2021-08-31T20:47:55+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Makrus Ali"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://makrusali.github.io/post/lcd-16x2/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Makrus Ali",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://makrusali.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+<noscript>
+    <style type="text/css">
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: #1d1e20;
+                --entry: #2e2e33;
+                --primary: rgba(255, 255, 255, 0.84);
+                --secondary: rgba(255, 255, 255, 0.56);
+                --tertiary: rgba(255, 255, 255, 0.16);
+                --content: rgba(255, 255, 255, 0.74);
+                --hljs-bg: #2e2e33;
+                --code-bg: #37383e;
+                --border: #333;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://makrusali.github.io/" accesskey="h" title="Makrus Ali (Alt + H)">Makrus Ali</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://makrusali.github.io/post/" title="Post">
+                    <span>Post</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://makrusali.github.io/search/" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://makrusali.github.io/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://makrusali.github.io/">Home</a>&nbsp;»&nbsp;<a href="https://makrusali.github.io/post/">Posts</a></div>
+    <h1 class="post-title">
+      Liquid Crystal Display 16x2 (HD44780)
+    </h1>
+    <div class="post-description">
+      Catatan tentang LCD 16x2 HD44780
+    </div>
+    <div class="post-meta">August 31, 2021&nbsp;·&nbsp;7 min&nbsp;·&nbsp;Makrus Ali
+</div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <div class="details">Table of Contents</div>
+        </summary>
+        <div class="inner"><ul>
+                <li>
+                    <a href="#referensi-tulisan" aria-label="Referensi tulisan">Referensi tulisan</a><ul>
+                        <ul>
+                        <ul>
+                        
+                <li>
+                    <a href="#datasheet-hd44780httpswwwhandsonembeddedcomlcd16x2-hd44780-tutorial-1" aria-label="Datasheet HD44780"><a href="https://www.handsonembedded.com/lcd16x2-hd44780-tutorial-1/">Datasheet HD44780</a></a></li>
+                <li>
+                    <a href="#datasheet-lcd16x2-pinouthttpscomponents101comdisplays16x2-lcd-pinout-datasheet" aria-label="Datasheet LCD16x2 pinout"><a href="https://components101.com/displays/16x2-lcd-pinout-datasheet">Datasheet LCD16x2 pinout</a></a></li>
+                <li>
+                    <a href="#webalfredstateedufacultyweimandnhttpwebalfredstateedufacultyweimandn" aria-label="web.alfredstate.edu/faculty/weimandn/"><a href="http://web.alfredstate.edu/faculty/weimandn/">web.alfredstate.edu/faculty/weimandn/</a></a></li>
+                <li>
+                    <a href="#milufledu3744docslcdmanualcommandshtmlhttpsmilufledu3744docslcdmanualcommandshtml" aria-label="mil.ufl.edu/3744/docs/lcdmanual/commands.html"><a href="https://mil.ufl.edu/3744/docs/lcdmanual/commands.html">mil.ufl.edu/3744/docs/lcdmanual/commands.html</a></a></li>
+                <li>
+                    <a href="#wwwhandsonembeddedcomhttpswwwhandsonembeddedcomlcd16x2-hd44780-tutorial-1" aria-label="www.handsonembedded.com"><a href="https://www.handsonembedded.com/lcd16x2-hd44780-tutorial-1/">www.handsonembedded.com</a></a></li></ul>
+                    </ul>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#pin-out" aria-label="Pin Out">Pin Out</a></li>
+                <li>
+                    <a href="#intruksi" aria-label="Intruksi">Intruksi</a><ul>
+                        <ul>
+                        
+                <li>
+                    <a href="#clear-display---hapus-tampilan" aria-label="Clear Display - Hapus Tampilan">Clear Display - Hapus Tampilan</a></li>
+                <li>
+                    <a href="#return-home---kembali-ke-rumah" aria-label="Return Home - Kembali ke Rumah">Return Home - Kembali ke Rumah</a></li>
+                <li>
+                    <a href="#entry-mode-set---set-mode-masuk" aria-label="Entry Mode Set - set mode masuk">Entry Mode Set - set mode masuk</a></li>
+                <li>
+                    <a href="#display-onoff---tampilan-onoff" aria-label="Display ON/OFF - Tampilan ON/OFF">Display ON/OFF - Tampilan ON/OFF</a></li>
+                <li>
+                    <a href="#cursor-or-display-shift---cursor-atau-geser-tampilan" aria-label="Cursor or display shift - Cursor atau Geser Tampilan">Cursor or display shift - Cursor atau Geser Tampilan</a></li>
+                <li>
+                    <a href="#function-set---set-fungsi" aria-label="Function Set - Set Fungsi">Function Set - Set Fungsi</a></li>
+                <li>
+                    <a href="#set-gcram-adrres---set-alamat-gcram" aria-label="Set GCRAM Adrres - Set alamat GCRAM">Set GCRAM Adrres - Set alamat GCRAM</a></li>
+                <li>
+                    <a href="#set-ddram-adrres---set-alamat-ddram" aria-label="Set DDRAM Adrres - Set alamat DDRAM">Set DDRAM Adrres - Set alamat DDRAM</a></li>
+                <li>
+                    <a href="#read-busy-flag--address---baca-bendera-sibuk-dan-penghitung-alamat" aria-label="Read busy flag &amp;amp; address - Baca bendera sibuk dan penghitung alamat">Read busy flag &amp; address - Baca bendera sibuk dan penghitung alamat</a></li>
+                <li>
+                    <a href="#write-data-to-cg-or-dd-ram---tulis-data-ke-cg-atau-dd-ram" aria-label="Write data to CG or DD RAM - tulis data ke CG atau DD RAM">Write data to CG or DD RAM - tulis data ke CG atau DD RAM</a></li>
+                <li>
+                    <a href="#read-data-from-cg-or-dd-ram---baca-data-ke-cg-atau-dd-ram" aria-label="Read data from CG or DD RAM - baca data ke CG atau DD RAM">Read data from CG or DD RAM - baca data ke CG atau DD RAM</a></li></ul>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#inisialisasi" aria-label="Inisialisasi">Inisialisasi</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p>Catatan mencoba LCD(Liquid Crystal Display) 16x2 (HD44780)</p>
+<h2 id="referensi-tulisan">Referensi tulisan<a hidden class="anchor" aria-hidden="true" href="#referensi-tulisan">#</a></h2>
+<h5 id="datasheet-hd44780httpswwwhandsonembeddedcomlcd16x2-hd44780-tutorial-1"><a href="https://www.handsonembedded.com/lcd16x2-hd44780-tutorial-1/">Datasheet HD44780</a><a hidden class="anchor" aria-hidden="true" href="#datasheet-hd44780httpswwwhandsonembeddedcomlcd16x2-hd44780-tutorial-1">#</a></h5>
+<h5 id="datasheet-lcd16x2-pinouthttpscomponents101comdisplays16x2-lcd-pinout-datasheet"><a href="https://components101.com/displays/16x2-lcd-pinout-datasheet">Datasheet LCD16x2 pinout</a><a hidden class="anchor" aria-hidden="true" href="#datasheet-lcd16x2-pinouthttpscomponents101comdisplays16x2-lcd-pinout-datasheet">#</a></h5>
+<h5 id="webalfredstateedufacultyweimandnhttpwebalfredstateedufacultyweimandn"><a href="http://web.alfredstate.edu/faculty/weimandn/">web.alfredstate.edu/faculty/weimandn/</a><a hidden class="anchor" aria-hidden="true" href="#webalfredstateedufacultyweimandnhttpwebalfredstateedufacultyweimandn">#</a></h5>
+<h5 id="milufledu3744docslcdmanualcommandshtmlhttpsmilufledu3744docslcdmanualcommandshtml"><a href="https://mil.ufl.edu/3744/docs/lcdmanual/commands.html">mil.ufl.edu/3744/docs/lcdmanual/commands.html</a><a hidden class="anchor" aria-hidden="true" href="#milufledu3744docslcdmanualcommandshtmlhttpsmilufledu3744docslcdmanualcommandshtml">#</a></h5>
+<h5 id="wwwhandsonembeddedcomhttpswwwhandsonembeddedcomlcd16x2-hd44780-tutorial-1"><a href="https://www.handsonembedded.com/lcd16x2-hd44780-tutorial-1/">www.handsonembedded.com</a><a hidden class="anchor" aria-hidden="true" href="#wwwhandsonembeddedcomhttpswwwhandsonembeddedcomlcd16x2-hd44780-tutorial-1">#</a></h5>
+<h2 id="pin-out">Pin Out<a hidden class="anchor" aria-hidden="true" href="#pin-out">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nomor Pin</th>
+<th>Nama Pin</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Vss (Ground)</td>
+<td>Pin Ground pada Lcd</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Vdd (+5V)</td>
+<td>Pin sumber +5V pada LCD</td>
+</tr>
+<tr>
+<td>3</td>
+<td>VE,VO (Kontrast Volt)</td>
+<td>Pin untuk adjusment (mengatur) kontrast pada LCD, semakin tegangan mendekati Ground maka kontrast akan semakin tinggi, maka pada saat pin ini dihubungkan langsung pada pin Ground  kontrast akan berada pada posisi Maksimum</td>
+</tr>
+<tr>
+<td>4</td>
+<td>RS (Register Select)</td>
+<td>Pin yang digunakan unutk memilih mode Command(perintah) atau Data(data), 0 = Command mode - 1 = Data mode</td>
+</tr>
+<tr>
+<td>5</td>
+<td>RW (Read Write)</td>
+<td>Pin yang digunakan untuk memilih antara membaca data dari LCD atau menulis data ke LCD, sering dijumpai pin ini langsung dihubungkan ke  Ground karena yang diperlukan hanya menampilkan (menulis data ke LCD), 0 = Write - 1 = Read</td>
+</tr>
+<tr>
+<td>6</td>
+<td>En (Enable)</td>
+<td>Pin yang digunakan untuk pengakuan data, (Falling Edge Triggered) ketika mendapatkan sinyal jatuh dari kondisi 1 ke 0, maka data pada pin data akan diakui (diterima) oleh LCD</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Data Pin 0</td>
+<td>Pin data bit ke 0 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Data Pin 1</td>
+<td>Pin data bit ke 1 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Data Pin 2</td>
+<td>Pin data bit ke 2 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Data Pin 3</td>
+<td>Pin data bit ke 3 ( jika memakai mode 4Bit maka Pin ini tidak digunakan )</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Data Pin 4</td>
+<td>Pin data bit ke 4</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Data Pin 5</td>
+<td>Pin data bit ke 5</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Data Pin 6</td>
+<td>Pin data bit ke 6</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Data Pin 7</td>
+<td>Pin data bit ke 7</td>
+</tr>
+<tr>
+<td>15</td>
+<td>A (Anode Led)</td>
+<td>Pin untuk LED Back-light bagian Anode(+) (Cahaya Belakang)</td>
+</tr>
+<tr>
+<td>16</td>
+<td>K (Cathode Led)</td>
+<td>Pin untuk LED Back-light bagian Cathode(-) (Cahaya Belakang)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="intruksi">Intruksi<a hidden class="anchor" aria-hidden="true" href="#intruksi">#</a></h2>
+<hr>
+<h4 id="clear-display---hapus-tampilan">Clear Display - Hapus Tampilan<a hidden class="anchor" aria-hidden="true" href="#clear-display---hapus-tampilan">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>Menghapus semua tampilan dan mengembalikan kursor ke posisi awal (Alamat 0)</p>
+<hr>
+<h4 id="return-home---kembali-ke-rumah">Return Home - Kembali ke Rumah<a hidden class="anchor" aria-hidden="true" href="#return-home---kembali-ke-rumah">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>Mengembalikan kursor ke posisi awal (Alamat 0), Mengembalikan tampilan ke keadaan semula jika digeser, data pada LCD tidak akan berubah</p>
+<hr>
+<h4 id="entry-mode-set---set-mode-masuk">Entry Mode Set - set mode masuk<a hidden class="anchor" aria-hidden="true" href="#entry-mode-set---set-mode-masuk">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>I/D</td>
+<td>S</td>
+</tr>
+</tbody>
+</table>
+<p>Menyetel efek operasi baca atau tulis DD RAM berikutnya. Mengatur arah pergerakan kursor dan menentukan atau tidak menggeser tampilan. Operasi ini dilakukan selama membaca dan menulis data.</p>
+<p>I/D (Increment/Decrement) : Menentukan apakah akan menambah (I/D = 1) atau mengurangi (I/D = 0) penghitung alamat setelah operasi baca atau tulis DDRAM berikutnya.</p>
+<p>S (Shift) : Jika S = 1 tampilan akan digeser ke kiri (jika I/D = 1) atau ke kanan (jika I/D = 0) pada operasi tulis DDRAM berikutnya. Ini membuatnya tampak seolah-olah kursor berdiri diam dan tampilan bergerak ketika setiap karakter ditulis ke DD RAM. jika S = 0 tampilan tidak akan bergeser pada operasi penulisan DDRAM berikutnya.</p>
+<hr>
+<h4 id="display-onoff---tampilan-onoff">Display ON/OFF - Tampilan ON/OFF<a hidden class="anchor" aria-hidden="true" href="#display-onoff---tampilan-onoff">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>D</td>
+<td>C</td>
+<td>B</td>
+</tr>
+</tbody>
+</table>
+<p>D (Display) : Tampilan ON saat D = 1 dan OFF saat D = 0. data pada DDRAM tetap/tidak berubah.</p>
+<p>C (Cursor) : Kursor ditampilkan saat C = 1 dan tidak ditampilkan saat C = 0.
+Kursor ditampilkan sebagai 5 titik di baris ke-8 saat font karakter 5 x 7 titik dipilih dan sebagai 5 titik di baris ke-11 saat Font karakter 5 x 10 titik dipilih.</p>
+<p>B (Blink) : Karakter pada posisi kursor berkedip saat B = 1, kursor tidak berkedip saat B = 0
+Berkedip dilakukan dengan beralih di antara semua titik kosong dan karakter tampilan setiap 409,6 ms</p>
+<hr>
+<h4 id="cursor-or-display-shift---cursor-atau-geser-tampilan">Cursor or display shift - Cursor atau Geser Tampilan<a hidden class="anchor" aria-hidden="true" href="#cursor-or-display-shift---cursor-atau-geser-tampilan">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>S</td>
+<td>C</td>
+<td>R/L</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>Memindahkan kursor dan menggeser tampilan tanpa mengubah isi DD RAM</p>
+<hr>
+<h4 id="function-set---set-fungsi">Function Set - Set Fungsi<a hidden class="anchor" aria-hidden="true" href="#function-set---set-fungsi">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>DL</td>
+<td>N</td>
+<td>F</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>Mengatur panjang data antarmuka (DL), jumlah baris tampilan (N) dan font karakter (F)</p>
+<p>Perintah ini harus dikeluarkan hanya setelah inisialisasi penyalaan otomatis terjadi, atau sebagai bagian dari urutan inisialisasi modul.
+DL: Mengatur panjang data antarmuka</p>
+<p>Data dikirim atau diterima dalam panjang 8 bit (DB7-DB0) ketika DL = 1
+Data dikirim atau diterima dalam panjang 4 bit (DB7-DB4) saat DL = 0</p>
+<p>Ketika panjang 4 bit dipilih, data harus dikirim atau diterima dalam pasangan masing-masing 4 bit. 4 bit paling signifikan (High Nible) dikirim atau diterima terlebih dahulu.</p>
+<p>N: Mengatur jumlah garis tampilan, N = 1 : 2 Baris - N = 0 : 1 Baris</p>
+<p>F: Mengatur font karakter, F = 1: 5 × 10 dots - F = 0: 5 × 8 dots</p>
+<hr>
+<h4 id="set-gcram-adrres---set-alamat-gcram">Set GCRAM Adrres - Set alamat GCRAM<a hidden class="anchor" aria-hidden="true" href="#set-gcram-adrres---set-alamat-gcram">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+</tr>
+</tbody>
+</table>
+<p>Menetapkan nilai yang ditentukan (AAAAAA) ke dalam penghitung alamat. Operasi baca atau tulis selanjutnya mentransfer data dari, atau ke, RAM pembangkit karakter.</p>
+<hr>
+<h4 id="set-ddram-adrres---set-alamat-ddram">Set DDRAM Adrres - Set alamat DDRAM<a hidden class="anchor" aria-hidden="true" href="#set-ddram-adrres---set-alamat-ddram">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+</tr>
+</tbody>
+</table>
+<p>Menyetel alamat DDRAM. Baca atau tulis selanjutnya mengacu pada DDRAM.</p>
+<p>Menetapkan nilai yang ditentukan (AAAAAAA) ke dalam penghitung alamat. Operasi baca atau tulis selanjutnya mentransfer data dari, atau ke, RAM tampilan. Catatan: Lokasi RAM tampilan yang berdekatan tidak selalu mengacu pada posisi tampilan yang berdekatan.</p>
+<hr>
+<h4 id="read-busy-flag--address---baca-bendera-sibuk-dan-penghitung-alamat">Read busy flag &amp; address - Baca bendera sibuk dan penghitung alamat<a hidden class="anchor" aria-hidden="true" href="#read-busy-flag--address---baca-bendera-sibuk-dan-penghitung-alamat">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>BF</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+<td>A</td>
+</tr>
+</tbody>
+</table>
+<p>Membaca status dari busy flag (BF) dan isi dari address counter.</p>
+<p>Detail
+Membaca tanda sibuk (BF) yang menunjukkan status modul LCD. BF = 1 menunjukkan bahwa modul sedang sibuk memproses perintah sebelumnya. BF = 0 menunjukkan bahwa modul siap untuk melakukan perintah lain.</p>
+<p>Nilai penghitung alamat juga dikembalikan. Penghitung alamat yang sama digunakan untuk transfer CG dan DD RAM.</p>
+<p>Perintah ini dapat dikeluarkan kapan saja. Ini adalah satu-satunya perintah yang akan diterima modul LCD saat perintah sebelumnya masih diproses.</p>
+<hr>
+<h4 id="write-data-to-cg-or-dd-ram---tulis-data-ke-cg-atau-dd-ram">Write data to CG or DD RAM - tulis data ke CG atau DD RAM<a hidden class="anchor" aria-hidden="true" href="#write-data-to-cg-or-dd-ram---tulis-data-ke-cg-atau-dd-ram">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+</tr>
+</tbody>
+</table>
+<p>Menulis satu byte (DDDDDDDD) ke CG atau DD RAM. Tujuan (CG RAM atau DD RAM) ditentukan oleh perintah `Set RAM Address' terbaru. Lokasi dimana byte akan ditulis adalah nilai penghitung alamat saat ini. Setelah byte ditulis, penghitung alamat secara otomatis bertambah atau berkurang sesuai dengan mode entri. Mode entri juga menentukan apakah tampilan akan bergeser atau tidak.</p>
+<hr>
+<h4 id="read-data-from-cg-or-dd-ram---baca-data-ke-cg-atau-dd-ram">Read data from CG or DD RAM - baca data ke CG atau DD RAM<a hidden class="anchor" aria-hidden="true" href="#read-data-from-cg-or-dd-ram---baca-data-ke-cg-atau-dd-ram">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>RS</th>
+<th>RW</th>
+<th>D7</th>
+<th>D6</th>
+<th>D5</th>
+<th>D4</th>
+<th>D3</th>
+<th>D2</th>
+<th>D1</th>
+<th>D0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+<td>D</td>
+</tr>
+</tbody>
+</table>
+<p>Membaca satu byte (DDDDDDDD) dari CG atau DD RAM. Sumber (CG RAM atau DD RAM) ditentukan oleh perintah `Set RAM Address' terbaru. Lokasi dari mana byte akan dibaca adalah nilai penghitung alamat saat ini. Setelah byte reda, penghitung alamat secara otomatis bertambah atau berkurang sesuai dengan mode entri.</p>
+<hr>
+<p>Keterangan :</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-txt" data-lang="txt">I/D = 1: Increment
+I/D = 0: Decrement
+S = 1: Accompanies display shift
+S/C = 1: Display shift
+S/C = 0: Cursor move
+R/L = 1: Shift to the right
+R/L = 0: Shift to the left
+DL = 1: 8 bits, DL = 0: 4 bits
+N = 1: 2 lines, N = 0: 1 line
+F = 1: 5 × 10 dots, F = 0: 5 × 8 dots
+BF = 1: Internally operating
+BF = 0: Instructions acceptable
+DDRAM: Display data RAM
+CGRAM: Character generator RAM
+ACG: CGRAM address
+ADD: DDRAM address (corresponds to cursor address)
+AC: Address counter used for both DD and
+</code></pre></div><h2 id="inisialisasi">Inisialisasi<a hidden class="anchor" aria-hidden="true" href="#inisialisasi">#</a></h2>
+<p>note : belum selesai</p>
+
+
+  </div>
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://makrusali.github.io/tags/lcd/">LCD</a></li>
+      <li><a href="https://makrusali.github.io/tags/electronics/">Electronics</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="https://makrusali.github.io/post/bahasa-c&#43;&#43;/">
+    <span class="title">Next Page »</span>
+    <br>
+    <span>Bahasa pemograman C&#43;&#43;</span>
+  </a>
+</nav>
+
+  </footer>
+  <div id="disqus_thread"></div>
+  <script>
+    
+
+    
+
+    (function () { 
+      var d = document, s = d.createElement('script');
+      s.src = 'https://makrusali-github-io.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+      Disqus.</a></noscript>
+</article>
+    </main>
+    <footer class="footer">
+    <span>&copy; 2021 <a href="https://makrusali.github.io/">Makrus Ali</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://git.io/hugopapermod" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)">
+    <button class="top-link" id="top-link" type="button" accesskey="g">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+            <path d="M12 6H0l6-6z" />
+        </svg>
+    </button>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+    menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
