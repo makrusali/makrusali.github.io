@@ -21,7 +21,6 @@ type Props = {
 };
 
 export default function Navbar({ onChangeMenu }: Props) {
-  const [currentMenu, setCurrentMenu] = useState("home");
   const [navOpen, setNavOpen] = useState(false);
   const menus = [
     {
@@ -40,10 +39,7 @@ export default function Navbar({ onChangeMenu }: Props) {
 
   function handleMenuClick(url: string) {
     setNavOpen(false);
-    if (url != currentMenu) {
-      setCurrentMenu(url);
-      onChangeMenu?.(url);
-    }
+    onChangeMenu?.(url);
   }
 
   return (

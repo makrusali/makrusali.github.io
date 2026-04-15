@@ -30,7 +30,6 @@ function Project(props: Props) {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 64rem)");
     const handleChange = () => {
-      console.log("BERUBAH", mediaQuery);
       setSelectedGrid(
         mediaQuery.matches
           ? props.project.preferredGridColsInMobile || 1
@@ -259,8 +258,8 @@ export default function Projects() {
       ],
       files: [
         {
-          name: "DEMO.gif",
-          url: "/projects/mildos-landing/DEMO.GIF",
+          name: "DEMO.GIF",
+          url: "/projects/mildos-landing/DEMO.gif",
           type: "image",
         },
         {
@@ -272,7 +271,6 @@ export default function Projects() {
       preferredGridColsInMobile: 1,
       preferredGridColsInDesktop: 2,
     },
-
     {
       title: "Mildos Ecommerce Vape Store",
       informations: [

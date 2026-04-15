@@ -11,7 +11,7 @@ export default function Home() {
   const [currentMenu, setCurrentMenu] = useState("home");
   useEffect(() => {
     (() => {
-      const path = window.location.pathname.replace("/", "") || "#/home";
+      const path = window.location.hash || "#/home";
       setCurrentMenu(path.replace("#", "").replace("/", ""));
     })();
   }, [setCurrentMenu]);
