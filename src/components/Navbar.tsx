@@ -27,10 +27,10 @@ export default function Navbar({ onChangeMenu }: Props) {
       title: "About",
       url: "about",
     },
-    // {
-    //   title: "Blog",
-    //   url: "blog",
-    // },
+    {
+      title: "Post",
+      url: "post",
+    },
     {
       title: "Resume",
       url: "resume",
@@ -46,7 +46,7 @@ export default function Navbar({ onChangeMenu }: Props) {
     <div className="fixed top-0 left-0 right-0 z-50">
       <header className="px-4 lg:px-12 h-16 flex flex-row items-center justify-between bg-white">
         <h1
-          className="text-2xl font-semibold cursor-pointer"
+          className="text-2xl font-semibold cursor-pointer no-select"
           onClick={() => handleMenuClick("home")}
         >
           Makrus Ali.

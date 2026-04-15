@@ -6,13 +6,29 @@ import { useEffect, useState } from "react";
 import About from "./About";
 import { Resume } from "./Resume";
 import { motion, AnimatePresence, type Transition } from "motion/react";
+import PostDetail from "../post/PostDetail";
+import Post from "../post/Post";
 
 export default function Home() {
   const [currentMenu, setCurrentMenu] = useState("home");
+  const [activePostSlug, setActivePostSlug] = useState("");
+
   useEffect(() => {
     (() => {
-      const path = window.location.hash || "#/home";
-      setCurrentMenu(path.replace("#", "").replace("/", ""));
+      const hash = (window.location.hash || "/home").replace("#", "");
+      const splitted = hash.split("/");
+      const valid = ["", "home", "about", "resume", "post"].includes(
+        splitted[1],
+      );
+      console.log(hash, splitted);
+      if (splitted.length == 2 && valid) {
+        setCurrentMenu(splitted[1] == "" ? "home" : splitted[1]);
+      } else if (splitted.length == 3 && valid) {
+        setCurrentMenu("post-detail");
+        setActivePostSlug(decodeURIComponent(splitted[2]));
+      } else {
+        setCurrentMenu("not-found");
+      }
     })();
   }, [setCurrentMenu]);
 
@@ -73,6 +89,39 @@ export default function Home() {
               transition={pageTransition}
             >
               <About />
+              <Footer />
+            </motion.div>
+          )}
+
+          {currentMenu === "post" && (
+            <motion.div
+              key="post"
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={pageTransition}
+            >
+              <Post
+                onClickOpenPost={(slug) => {
+                  setCurrentMenu("post-detail");
+                  window.history.pushState({}, "", `#/post/${slug}`);
+                }}
+              />
+              <Footer />
+            </motion.div>
+          )}
+
+          {currentMenu === "post-detail" && (
+            <motion.div
+              key="post-detail"
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={pageTransition}
+            >
+              <PostDetail slug={activePostSlug} />
               <Footer />
             </motion.div>
           )}

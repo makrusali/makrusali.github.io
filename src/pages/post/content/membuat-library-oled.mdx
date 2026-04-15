@@ -1,0 +1,1518 @@
+# Mengakses Oled 1.3 Inch
+
+Mengakses Oled 1.3 Inch tentunya cukup mudah dimana sudah banyak *library* yang tersedia,
+namun kita jadi tidak tau dibelakang layar apa saja yang dilakukan library tersebut.
+
+Nah dalam tulisan ini akan dibedah langkah per langkah mengakses oled 1.3 inch dengan cara sedikit *Manual* atau secara simpelnya kita akan mengulik bagaimana sih cara atau langkah komunikasi *microcontroller* dengan oled nya.
+
+Oled 1.3 yang beredar dipasaran akan kurang lebih seperti pada gambar dibawah ini, yang kebanyakan mengunakan antarmuka i2c.
+
+![Oled 1.3](https://www.microscale.net/cdn/shop/files/OLED_1.3_Inch_Display_Module_128X64_I2C_Communicate_4Pin_SSD1106_Bluetext_Color_In_Lahore_Islamabad_Faislabad_Quetta_Multan_Pakistan___2.png?v=1709024021)
+
+
+## Datasheet
+
+Langkah awal adalah mencari rujukan dimana kita bisa mendapatkan informasi yang kita perlukan, *datasheet* adalah kitab yang kita perlukan untuk membedah oled 1.3 inch.
+
+secara umum display oled adalah matrix dari pixel, jika ukuran 1.3 inch maka pixelnya adalah sebanyak **128x64** dimana sejumlah 128 kolom dan 64 baris
+
+tentunya pixel tersebut harus dikontrol dengan sebuah *Chip* atau IC, dalam hal ini *Chip* tersebut seringkali disebut sebagai **Controller** (karena chip ini yang akan mengontrol pixel matrix).
+
+yang saya temukan kebanyakan dipasaran menggunakan **IC dengan tipe SSD1306**
+
+[Datasheet SSD1306](https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf)
+
+### Komunikasi
+
+Jika dilihat pada halaman 15 di datasheet dijelaskan bahwa opsi komunikasi yang bisa digunakan tidak hanya i2c melainkan juga bisa parallel 8bit dan juga SPI, namun karena modul dipasaran kebanyakan hanya mengeluarkan pin dengan opsi I2C maka kita akan fokus pada komunikasi I2C.
+
+![Bagian Komunikasi](/assets/images/F3mgFn748m.png)
+
+di datasheet pada halaman 20 ditunjukan diagram komunikasi I2c dimulai dari *start condition* itu seperti apa *ACK* dan sebagainya, dalam tulisan ini tidak akan dibahas secara detail dari segi teknik bagaimana I2c berkomunikasi.
+
+Untuk detail komunikasi i2c seperti apa dapat dilihat pada referensi berikut ini [I2C Lesson - 
+Gene Schroeder Tech](https://www.youtube.com/watch?v=3kbXWgg30dA&list=PL4cGeWgaBTe1I_AfY4wk0SbIvh5tKWQME&index=1)
+
+![Bagian Komunikasi](/assets/images/QQy4otkyEQ.png)
+
+Dapat diliat pada gambar diagram diatas bahwa dalam tiap pengiriman data ada *address* *control byte* dan *data byte*, kita akan mengulik satu persatu.
+
+### Alamat - *Address*
+
+sudah tidak asing lagi ya untuk temen-temen yang pernah pake modul yang menggunakan komunikasi i2c dan bahkan ketika menggunakan library pun biasanya kita harus memasukkan *address* atau alamat dari modul yang kita gunakan.
+
+Singkatnya, dalam komunikasi I2c terdapat konsep *Master* dan *Slave*, sesuai dengan penamaannya Master adalah komponen yang menjadi titik utama dan slave adalah komponen yang bertindak atas perintah master.
+
+dalam kasus ini *Microcontroller* kita adalah *Master*
+
+dan oled 1.3 inch adalah *Slave*
+
+setiap kali master ingin mengirimkan atau bahkan meminta sesuatu kepada *Slave* maka master harus mengetahui alamat dari *Slave* tersebut, nah dibuat seperti itu karena dalam 1 jalur I2C dapat dipasangkan lebih dari 1 *Slave*
+
+seperti ilustrasi pada gambar dibawah ini.
+
+![Ilustrasi I2C](/assets/images/958JATMsu3.png)
+
+alamat ini direpresentasikan dalam nilai bit biasanya dalam format 7 bit, seperti **0x01, 0x02 ... 0x3c ...**
+
+dalam ilustrasi diatas ketika **Master** ingin melakukan komukasi dengan **Slave 1** maka master akan mengirimkan **Slave Address** yaitu **0x01**
+
+### Control Byte
+
+selanjutnya kita akan membahas soal **Control Byte** dalam control byte ini jika dilihat pada datasheet pada halaman 20 dijelaskan bahwa control byte berisi Co dan D/C bits yang diikuti 6 bit lainnya 0, jadi bisa 0b00000000 atau 0b01000000 atau 0b10000000 atau 0b11000000
+
+![Control Byte](/assets/images/hIrJGNJY1Z.png)
+
+dijelaskan bahwa jika
+
+- jika **Co** / (Continuation bit) bernilai 0 maka data yang akan dikirimkan setelahnya (setelah control byte) akan dianggap hanya sebagai *bytes* data
+- jika **D/C** (Data/Command) bernilai 0 maka data yang akan dikirimkan setelahnya (setelah control byte) akan dianggap sebagai *Command* (yaitu bit perintah) dan sebaliknya jika bernilai 1 maka data yang akan dikirimkan akan diaggap sebagai *bytes* data yang akan disimpan pada memeori ram IC Controller
+
+### Data Byte
+
+Dijelaskan di halaman 20 datasheet bahwa data bytes ini adalah data yang kita kirimkan ke IC Controller *data byte* akan dianggap sebagai data (yang akan disimpan ke dalam ram) atau sebagai *command* (perintah) bergantung dengan nilai **D/C** pada *Control byte* yang dikirimkan.
+
+## Mengulik Command
+
+Sebelumnya telah disebut kata *command* tetapi belum jelas yang dimaksudkan *command* ini seperti apa.
+
+Pada halaman 28 di datasheet terdapat tabel yang menunjukan daftar nilai byte *command* dan juga aksi dari *command* tersebut.
+
+![Command Byte](/assets/images/kF2aLKyqXf.png)
+
+dari informasi di atas dapat disimpulkan bahwa *byte* *command* adalah *byte* yang akan mengatur aksi yang akan dilakukan oleh IC *controller* seperti merubah nilai kontras lcd, melakukan on/off pada lcd, dsb.
+
+# Praktek Simulasi
+
+Setelah sedikit tau mengenai informasi tentang Chip Controllernya langkah selanjutnya adalah mencoba untuk melakukan percobaan.
+
+dalam konteks kali ini saya sudah membuat sebuah rangkaian simulasi (menggunakan Wokwi simulator) dengan rangkaian seperti pada gambar dibawah ini.
+
+![Rangkaian simulasi](/assets/images/3WzCmA9WNX.png)
+
+### Halaman 64 - Langkah Inisialisasi
+
+pada halaman ini menjelaskan langkah penting yang harus dilakukan, pada penjelasan singkatnya langkah-langkah ini adalah langkah insialisasi yang di lakukan agar display dapat berfungsi dengan baik (begitu kata *datasheet*).
+
+berikut adalah isi halaman 64 di dalam datasheet
+
+![Software Configuration](/assets/images/PFgCaXujdU.png)
+
+dikutip dari *datasheet* bahwa 
+
+> SSD1306 has internal command registers that are used to configure the operations of the driver IC. After reset, the registers should be set with appropriate values in order to function well.
+
+yang kurang lebih begini
+
+> SSD1306 memiliki register perintah internal yang digunakan untuk mengonfigurasi operasi IC pengendali. Setelah reset, register-register tersebut harus diatur dengan nilai yang sesuai agar dapat berfungsi dengan baik.
+
+maka kita akan membahas langkah perlangkah dari inisialisasi nya seperti apa
+
+sebelum itu berikut adalah kode program untuk inisialisasi komunikasi I2c di Arduino.
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C // alamat Oled dalam format 7bit
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+}
+
+void loop() {
+
+}
+```
+
+### Step 1 - Set Mux Ratio
+
+Dalam *flow chart* dituliskan bahwa kita harus mengirim *bytes* 0xA8 dan 0x3F, jika kita lihat dalam *command table* di dalam datasheet pada halaman 31 maka dijelaskan bahwa 0xA8 adalah perintah/**Command** untuk mengatur *Multiplex Ratio*
+
+![Multiplex Ratio](/assets/images/KYa0ZQHtdj.png)
+
+terdapat 2 byte, byte pertama 0xA8 adalah paten yang artinya kita harus mengirim ini, dan bit berikutnya 0x3F adalah byte yang nilainya menyesuaikan dengan (yaitu dari A0 sampai A5) dengan jumlah baris OLED yang digunakan, di kasus ini kita pake 64 baris dan nilai yang harus kita berikan adalah 0x3F = 63, karena dimulai dari 0, yaitu dari 15-63 (nilai yang valid)
+
+jadi ...
+- kalo misal pake oled 128x32 maka nilai 0x3F ganti dengan 0x1F
+- kalo misal pake oled 128x16 maka nilai 0x3F ganti dengan 0x0F
+
+dan berikut adalah kode program setelah mengimplementasikan step 1
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 2 - Set Display Offset
+
+Dalam *flow chart* dituliskan bahwa data bytes yang harus dikirimkan adalah 0xD3 dan 0x00, dan jika di liat pada halaman 38 pada datasheet dijelaskan bahwa nilai *offset* adalah nilai dimana data baris di ram akan dipetakan (dimapping) dimana dalam baris panel oled (di datasheet ini disebut COM)
+
+![Set Offset](/assets/images/aMPMAqxopr.png)
+
+mengirim **0x00** akan menyatakan bahwa data pada RAM baris pertama akan dipetakan di COM-0 (com dapat dikatakan sebagai baris dalam panel Oled)
+
+karena kita memang tidak inggin memberikan **Offset** maka nilai yang dikirimkan adalah **0x00**
+
+dan berikut adalah kode program setelah mengimplementasikan step 2
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 3 - Set Display Start Line
+
+Dalam langkah ke 3 ini *byte* yang harus dikirimkan adalah 0x40, jika dilihat deskripsi perintah untuk Set Display Start Line pada datasheet halaman 36
+
+![Set Display Start Line](/assets/images/yDPBZAcdn7.png)
+
+singkatnya perintah ini adalah untuk mengatur pemetaan dimualainya alamat di **RAM**, berbeda dengan offset dimana digunakan untuk mengatur pemetaan di panel Oled.
+
+struktur perintah ini dapat dilihat pada **Command Table** pada halaman 31
+
+![Set Display Start Line](/assets/images/4QrpYy4uZJ.png)
+
+dalam byte perintah ini terdapat 2 bit yang sudah paten ditentukan dan bit sisanya sebagai parameter yang diberikan
+jadi Ox4x = 0b0100 0000 | (Nilai Start Line 0-63)
+
+jika kita memberikan 0x40 maka 0x40 = 0b0100 0000 | 0b0000 0000;
+
+dan berikut adalah kode program setelah mengimplementasikan step 3
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 4 - Set Segment Remap
+
+Dalam langkah ke 4 ini byte yang harus dikirimkan adalah 0xA0 atau 0xA1, jika di lihat pada deskripsi perintah tersebut pada datasheet halaman 31 dijelaskan bahwa perintah ini adalah konfigurasi untuk memetakan address 0 apakah akan di petakan (mapping) ke SEG0 pada panel oled atau address 127 yang akan dipetakan (mapping) ke SEG0
+
+![Set Segment Remap](/assets/images/FZ9bYkFFgZ.png)
+
+- jika diberikan nilai 0xA0 maka alamat kolom 0 akan dipetakan pada SEG0 pada panel OLED
+- jika diberikan nilai 0xA1 maka alamat kolom 0 akan dipetakan pada SEG127 pada panel OLED
+
+hal ini bergantung pada rangkaian IC Controller dengan panel Oled, untuk yang sudah saya coba dengan modul oled yang tersedia dipasaran mereka memetakan address 0 pada SEG127 jadi nilai byte yang akan dikirmkan adalah 0x01 pada langkah 4 ini
+
+
+dan berikut adalah kode program setelah mengimplementasikan step 4
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+}
+
+void loop() {
+
+}
+```
+
+### Step 5 - Set Com Output Scan Direction
+
+pada langkah ini digunakan untuk melakukan konfigurasi apakah scanning itu dimulai pada COM0 - COM-N(n sesuai jumlah multiplex ratio (baris pada penel OLED))
+atau sebaliknya yaitu pada COM-N dulu sampai pada COM0
+
+informasi ini dapat dilihat pada halaman 31 pada bagian *Command Table*
+
+![Set Segment Com Output Scan Direction](/assets/images/poKRcm7PSF.png)
+
+dalam percobaan saya dari modul yang ada dipasaran sepertinya rangkaian dari panel oled nya meminta untuk dikirimkan nilai 0xC8 yaitu dari COM63 baru ke COM0, jika dibalikin konfigurasinya maka akan perlu konfigurasi lain yang akan perlu disesuaikan juga, jika tidak maka tampilan akan terbalik
+
+dan berikut adalah kode program setelah mengimplementasikan step 5
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+}
+
+void loop() {
+
+}
+```
+
+### Step 6 - Set Com Pins hardware configuration
+
+pada langkah ini akan diikuti langkah dari flowchat yaitu mengirimkan 0xDA dan 0x02, pada langkah ini berkaitan dengan konfigurasi pin dari modul OLED yang digunakan
+
+dapat dilihat pada datasheet halaman 31 di tunjukkan bahwa ada 2 parameter yang bisa kita masukkan
+
+![Set Com Pins hardware configuration](/assets/images/qjBMN2j0nT.png)
+
+jika mengikuti pada *flow chart* maka konfigurasi untuk 0x02 adalah A[4] = 0 dan A[5] = 0, dan berikut adalah gambar konfigurasinya
+
+dapat dilihat pada datasheet halaman 41
+
+![Set Com Pins hardware configuration](/assets/images/n9b2H7sWF5.png)
+
+dan berikut adalah kode program setelah mengimplementasikan step 6
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+
+### Step 7 - Set Contrast Control
+
+dalam langkah ini akan diberikan perintah untuk mengatur nilai contrast, detail command dapat dilihat pada 28 pada *Command Table*
+
+![Set Contrast Control](/assets/images/5IB1hzlZHH.png)
+
+perintah ini memerlukan 2 byte yang akan dikirim yaitu 0x81 dan nilai contrast nya (dari 1 - 256)
+
+jika mengikuti dari *Flow Chart* nilai contrast nya adalah 0x7F, dan kita akan mengikuti nilai dari *flow chart*
+
+dan berikut adalah kode program setelah mengimplementasikan step 7
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+   // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 8 - Disable Entire Display On
+
+langkah ini digunakan agar tampilan pada oled untuk mengikuti data pada RAM, sehinga nanti apapun yang kita tuliskan di RAM controller akan ditampilkan pada panel OLED
+
+ada 2 opsi 0xA4 untuk disable dan 0xA5 untuk enable entire display on, ketika on display tidak akan mengikuti data yang ada di RAM 
+
+deskripsi perintah ini dapat dilihat pada *Command Table* halaman 28
+
+![Disable Entire Display On](/assets/images/ZRsVqgwXhp.png)
+
+
+dan berikut adalah kode program setelah mengimplementasikan step 8
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+   // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 9 - Set Normal Display
+
+dalam langkah kali ini data byte perintah yang akan dikirimkan adalah 0xA6 perintah ini untuk menampilkan data di RAM pada display Oled secara normal
+
+normal disini dimaksudkan adalah ketika data di RAM bernilai 1 maka pixel akan menyala, kali di lihat pada *Command Tabel* pada datasheet halaman 28
+
+![Set Normal Display](/assets/images/LrE7H8Udzd.png)
+
+ada opsi untuk **Inverse** dan **Normal** ketika di set ke **Inverse** maka data bit 0 pada RAM akan menyalakan pixel dan 1 malah akan mematikan **Pixel**
+
+ada 2 Opsi yaitu
+
+- **0xA6** untuk Normal
+- **0xA7** untuk *Inverse*
+
+dan berikut adalah kode program setelah mengimplementasikan step 9
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+   // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 10 - Set Oscilator Frequency
+
+pada langkah ini akan dilakukan konfigurasi untuk nilai Oscilator, nilai yang dituliskan (Di Rekomendasikan) oleh *flow chart* adalah **0x80**
+
+jika dilihat pada *Command Table* pada halaman 32, dijelaskan bahwa 4 bit pertama menunjukan parameter untuk nilai *Divide Ratio* dan 4 bit keduat untuk parameter nilai *Oscilator Frequency*
+
+![Set Oscilator Frequency](/assets/images/u4H7rAw6ai.png)
+
+dan berikut adalah kode program setelah mengimplementasikan step 10
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### Step 11 - Enable Charge Pump Regulator
+
+dalam langkah ini dimaksudkan untuk mengaktifkan Charge Pump dalam rangkaian akan terdapat 2 external capacitor yang dapat melakukan generate tegangan sampai dengan 7.5v voltage untuk memaksimalkan penampillan ke Display panel Oled
+
+hal ini dapat diaktifkan/diatur seperti yang dituliskan pada  datasheet di halaman 62
+
+![Charge Pump](/assets/images/jiXsZdqwdI.png)
+
+kita akan mengikuti *Flow Chart* yaitu dengan mengirimkan 2 byte 0x8D dan 0x14 (yang artinya akan mengaktifkan Charge Pump)
+
+dan berikut adalah kode program setelah mengimplementasikan step 11
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 11 set charge pump
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x8D); // set charge pump
+  Wire.write(0x80); // aktifkan charge pump
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+
+### Step 12 - Display On
+
+Langkah ini adalah langkah terakhir untuk inisialisasi yaitu perintah untuk mengaktifkan Display, data byte yang harus dikirim adalah 0xAF, dapat dilihat pada halaman 28 pada *Command Table* terdapat 2 opsi yaitu Off (Sleep Mode) dan On
+
+- **0xAE** untuk Off (Sleep Mode)
+- **0xAF** untuk On
+
+![Display On](/assets/images/jXUYWSHFjA.png)
+
+
+dan berikut adalah kode program setelah mengimplementasikan step 12
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 11 set charge pump
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x8D); // set charge pump
+  Wire.write(0x80); // aktifkan charge pump
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 12 display On
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xAF); // set display On
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+
+## Kirim Data
+
+Setelah Display Oled selesai di inisialisasi tentunya belum tampil apa-apa, karena data pixel yang akan ditampilkan belum dikirimkan sebagai percobaan berikut adalah kode program yang akan menampilkan bidak catur
+
+langkah-langkah pengiriman data pada LCD Oled adalah sebagai berikut
+
+1. Atur Mode Pengalamatan (Set Addressing Mode)
+2. Atur alamat *Page* range (Set Page Address)
+3. Atur alamat kolom range (Set Column Address)
+
+dapat dilihat pada datasheet (halaman 25) pengalamatan oled adalah seperti pada gambar di bawah ini
+
+![Pengalamatan](/assets/images/fF4mWyhw16.png)
+
+jika kita memiliki 64 baris maka akan dibagi 8, dan akan menghasilkan **8 Page** yaitu page 0 ke 7 (dimulai dari 0)
+
+untuk kolom jika kita ada 128 kolom di panel oled, maka alamat kolom juga akan dari 0 ke 127 (dimulai dari 0)
+
+untuk detail bagaimana data byte (8 bit) direpresentasikan dapat dilihat pada halaman 34
+
+![Pengalamatan di Pixel](/assets/images/fyRYq041Nf.png)
+
+berikut adalah perintah untuk melakukan pengiriman pixel 0x00 (mati semua pada OLED)
+
+
+### 1. Set Addressing Mode
+
+perintah untuk mengatur *Addressing Mode* dapat dilihat pada *Command Table* halaman 30, byte yang perlu dikirim ada 2 byte perintah *0x20* dan diikuti mode yang akan dipakai, ada beberapa Opsi untuk mode pengalamatan
+
+![Set Addressing Mode](/assets/images/8jBCdGnxPB.png)
+
+Mode yang banyak digunakan adalah *Horizontal Addressing Mode*, dan dalam praktik kali ini akan menggunakan mode ini
+
+untuk detail dapat dilihat pada halaman 35
+
+![Horizontal Addressing Mode](/assets/images/Wnd2ChgIjN.png)
+
+berikut adalah kode program untuk melakukan pengaturan addressing Mode
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 11 set charge pump
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x8D); // set charge pump
+  Wire.write(0x80); // aktifkan charge pump
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 12 display On
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xAF); // set display On
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  // ############################################ 
+  
+  // Set Addressing Mode
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x20); // set addressing mode
+  Wire.write(0x00); // set addresing mode horizontal
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  
+}
+
+void loop() {
+
+}
+```
+
+### 2. Set Page Address Range
+
+pada langkah ini akan diatur alamat mulai dan alamat akhir dari data yang akan kita kirimkan, dalam praktik kali ini akan mengirimkan data sebanyak seluruh page maka dalam praktik kali ini page start akan di atur pada 0x00 dan page end page 0x07
+
+detail dari perintah ini dapat dilihat pada datasheet halaman 31 pada *Command Table*
+
+![Set Page Address Range](/assets/images/xWq48gWoHE.png)
+
+berikut adalah kode program untuk melakukan pengaturan page address range
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 11 set charge pump
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x8D); // set charge pump
+  Wire.write(0x80); // aktifkan charge pump
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 12 display On
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xAF); // set display On
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  // ############################################ 
+  
+  // Set Addressing Mode
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x20); // set addressing mode
+  Wire.write(0x00); // set addresing mode horizontal
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // Set Page Address Range
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x22); // set page address range
+  Wire.write(0x00); // set page start (mulai dari page alamat 0x00)
+  Wire.write(0x07); // set page en    (selesai page page alamat 0x07)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+### 3. Set Colum Address Range
+
+langkah kali ini mirip dengan page address range, bedanya disini yang diatur adalah kolom, dalam praktik ini data yang dikirimkan akan dimulai dari kolom 0x00 sampai pada kolom 0x7F (127)
+
+untuk detail perintah dapat dilihat pada halaman 30 di *Command Table*
+
+![Set Column Address Range](/assets/images/YPksbaDXYZ.png)
+
+berikut adalah kode program untuk melakukan pengaturan page address range
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 11 set charge pump
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x8D); // set charge pump
+  Wire.write(0x80); // aktifkan charge pump
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 12 display On
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xAF); // set display On
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  // ############################################ 
+  
+  // Set Addressing Mode
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x20); // set addressing mode
+  Wire.write(0x00); // set addresing mode horizontal
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // Set Page Address Range
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x22); // set page address range
+  Wire.write(0x00); // set page start (mulai dari page alamat 0x00)
+  Wire.write(0x07); // set page start (selesai page page alamat 0x07)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  // Set Column Address Range
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x21); // set kolom address range
+  Wire.write(0x00); // set kolom start (mulai dari kolom alamat 0)
+  Wire.write(0x7F); // set kolom end (selesai page kolom alamat 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+}
+
+void loop() {
+
+}
+```
+
+
+# Langkah kirim data
+
+sebagai percobaan berikut adalah kutipan program untuk mengirim data yang akan ditampilkan pada oled
+
+```c++
+// kirim pola catur
+for (int page = 0; page < 8; page++) {
+  for (int column = 0; column < 128; column++) {
+    Wire.beginTransmission(OLED_ADDRESS);
+    Wire.write(0x40); // Data mode
+    // jika berada pada kolom/8 (genap) dan pada page genap atau pada kolom/8 ganjil dn page ganjil maka 0xff (pixel menyala)
+    // jika bedada pada kondisi selain itu, berada pada kolom genap dan page ganjil atau pada kolom ganjil page genap maka pixel mati
+    Wire.write(page % 2 == 0 ^ (column/8) % 2 == 0 ? 0xFF : 0x00);
+    Wire.endTransmission();
+  }
+}
+```
+
+dan berikut adalah Full Program dari langkah-langkah yang sudah dilakukan
+
+```c++
+#include <Wire.h>
+
+#define OLED_ADDRESS 0x3C
+
+void setup() {
+  Wire.begin(); // inisialisasi komunikasi I2C
+
+  // step 1 set mux ratio
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA8); // set mux ratio
+  Wire.write(0x3F); // kirim nilai mux ratio = 0x3f (63) = untuk 64 baris
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 2 set Display Offset
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD3); // set display offset
+  Wire.write(0x00); // kirim offset = 0, artinya tidak ada offset
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 3 set Display Start Line
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x40 | 0x00); // set display start line pada line 0 (pertama)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 4 set Segment Remap
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA1); // set segment remap address 0 dipetakan pada SEG127 pada panel OLED
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 5 set com output scan direction
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xC8); // mengatur arah scan yaitu dari COM63 - COM0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 6 set com pins configuration
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xDA); // set com pins configurations
+  Wire.write(0x02); // kirim A[4] = 0, A[5] = 0
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 7 set contrast control
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x81); // set contrast
+  Wire.write(0x7F); // kirim nilai contrast (0x7F = 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 8 set disable entire display on
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA4); // set disable entire display on
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 9 set Normal Display
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xA6); // set normal display (tidak inverse)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 10 set osilator frequency
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xD5); // set oscilator frequency
+  Wire.write(0x80); // kirim nilai Divide ratio dan Oscilator Frequency
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 11 set charge pump
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x8D); // set charge pump
+  Wire.write(0x80); // aktifkan charge pump
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // step 12 display On
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0xAF); // set display On
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  // ############################################ 
+  
+  // Set Addressing Mode
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x20); // set addressing mode
+  Wire.write(0x00); // set addresing mode horizontal
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+  
+  // Set Page Address Range
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x22); // set page address range
+  Wire.write(0x00); // set page start (mulai dari page alamat 0x00)
+  Wire.write(0x07); // set page start (selesai page page alamat 0x07)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // Set Column Address Range
+  Wire.beginTransmission(OLED_ADDRESS); // mulai pengiriman (kirim slave adddress)
+  Wire.write(0x00); // Co=0, dan D/C=0 artinya kita akan mengirim command(perintah)
+  Wire.write(0x21); // set kolom address range
+  Wire.write(0x00); // set kolom start (mulai dari kolom alamat 0)
+  Wire.write(0x7F); // set kolom end (selesai page kolom alamat 127)
+  Wire.endTransmission(); // akhiri pengiriman (stop condition)
+
+  // kirimkan data pola catur
+  for (int page = 0; page < 8; page++) {
+    for (int column = 0; column < 128; column++) {
+      Wire.beginTransmission(OLED_ADDRESS);
+      Wire.write(0x40); // Data mode
+      Wire.write(page % 2 == 0 ^ (column/8) % 2 == 0 ? 0xFF : 0x00);
+      Wire.endTransmission();
+    }
+  }
+}
+
+void loop() {
+
+}
+```
+
+Dan jika berhasil maka seharusnya Lcd Oled akan menampilkan seperti pada gambar di bawah ini
+
+![Hasil Kode Program](/assets/images/QxmFW9Pnyt.png)
+
+Jika belum berhasil bisa tinggalkan saran maupun komentar
+
+untuk program tentunya masih banyak kekurangan tetapi setidaknya (*At Least*) display Oled sudah bisa menampilkan data yang dikirimkan.
+Untuk bagian penggambaran grafis yang lain seperti font, bentuk geometry (kotak, garis, dll) mungkin akan dilanjukan pada bagian Post ke 2
+
+Terima kasih ..

@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mdx-js/react": "^3.1.1",
+    "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/vite": "^4.2.2",
     "motion": "^12.38.0",
     "react": "^19.2.4",
