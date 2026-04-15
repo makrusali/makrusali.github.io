@@ -226,17 +226,17 @@ export default function Projects() {
       files: [
         {
           name: "LOGIN_DESIGN.PNG",
-          url: "/projects/kdm/LOGIN.PNG",
+          url: "/projects/kdm/LOGIN.png",
           type: "image",
         },
         {
           name: "HOME_DESIGN.PNG",
-          url: "/projects/kdm/HOME.PNG",
+          url: "/projects/kdm/HOME.png",
           type: "image",
         },
         {
           name: "CONFIRM_ATTENDANCE_DESIGN.PNG",
-          url: "/projects/kdm/CONFIRM_ATTENDANCE_DESIGN.PNG",
+          url: "/projects/kdm/CONFIRM_ATTENDANCE_DESIGN.png",
           type: "image",
         },
       ],
@@ -259,7 +259,7 @@ export default function Projects() {
       ],
       files: [
         {
-          name: "DEMO.GIF",
+          name: "DEMO.gif",
           url: "/projects/mildos-landing/DEMO.GIF",
           type: "image",
         },
