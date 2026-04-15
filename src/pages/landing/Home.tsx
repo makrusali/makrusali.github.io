@@ -56,11 +56,15 @@ export default function Home() {
     <div>
       <Navbar
         onChangeMenu={(m) => {
+          setTimeout(
+            () =>
+              window.scroll({
+                top: 0,
+              }),
+            500,
+          );
           setCurrentMenu(m);
           window.history.pushState({}, "", `#/${m}`);
-          window.scrollTo({
-            top: 0,
-          });
         }}
       />
       <div className="h-16"></div>
@@ -107,12 +111,16 @@ export default function Home() {
             >
               <Post
                 onClickOpenPost={(slug) => {
+                  setTimeout(
+                    () =>
+                      window.scroll({
+                        top: 0,
+                      }),
+                    500,
+                  );
                   setActivePostSlug(slug);
                   setCurrentMenu("post-detail");
                   window.history.pushState({}, "", `#/post/${slug}`);
-                  window.scrollTo({
-                    top: 0,
-                  });
                 }}
               />
               <Footer />
