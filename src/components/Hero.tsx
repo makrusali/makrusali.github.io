@@ -15,7 +15,7 @@ export default function Hero() {
             duration: 0.3,
           },
         }}
-        src="/public/makrusali.png"
+        src="/main/makrusali.png"
         className="w-28 h-28 rounded-xl"
       />
       <h2 className="text-4xl font-semibold mt-5 leading-12">

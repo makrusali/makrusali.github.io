@@ -61,7 +61,7 @@ export default function Footer() {
           },
         }}
       >
-        @2026 | MAKRUS ALI
+        @2026
       </motion.span>
     </footer>
   );

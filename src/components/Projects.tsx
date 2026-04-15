@@ -66,7 +66,9 @@ function Project(props: Props) {
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => setOpen(!open)}
           >
-            <h3 className="font-medium text-xl">{props.project.title}</h3>
+            <h3 className="font-normal text-lg text-ellipsis">
+              {props.project.title}
+            </h3>
             <ChevronDownIcon
               className={`w-6 h-6 transition-all ${open ? "rotate-0" : "-rotate-90 "}`}
             />
@@ -184,22 +186,22 @@ export default function Projects() {
       files: [
         {
           name: "DEMO.MP4",
-          url: "/public/projects/sahabat-sba/DEMO.MP4",
+          url: "/projects/sahabat-sba/DEMO.MP4",
           type: "video",
         },
         {
           name: "HOME_DESIGN.PNG",
-          url: "/public/projects/sahabat-sba/HOME_DESIGN.PNG",
+          url: "/projects/sahabat-sba/HOME_DESIGN.PNG",
           type: "image",
         },
         {
           name: "MEMBERSHIP_DESIGN.PNG",
-          url: "/public/projects/sahabat-sba/MEMBERSHIP_DESIGN.PNG",
+          url: "/projects/sahabat-sba/MEMBERSHIP_DESIGN.PNG",
           type: "image",
         },
         {
           name: "PRODUCT_CATALOG_DESIGN.PNG",
-          url: "/public/projects/sahabat-sba/PRODUCT_CATALOG_DESIGN.PNG",
+          url: "/projects/sahabat-sba/PRODUCT_CATALOG_DESIGN.PNG",
           type: "image",
         },
       ],
@@ -218,23 +220,23 @@ export default function Projects() {
         {
           title: "ROLE",
           description:
-            "Worked as a UI and frontend developer using React.js and a PWA approach. Implemented face recognition with face-api.js and integrated REST APIs using a mobile-first design.",
+            "Worked as a UI and frontend developer using React.js and a PWA approach. Implemented face detection with face-api.js and integrated REST APIs using a mobile-first design.",
         },
       ],
       files: [
         {
           name: "LOGIN_DESIGN.PNG",
-          url: "/public/projects/kdm/LOGIN.PNG",
+          url: "/projects/kdm/LOGIN.PNG",
           type: "image",
         },
         {
           name: "HOME_DESIGN.PNG",
-          url: "/public/projects/kdm/HOME.PNG",
+          url: "/projects/kdm/HOME.PNG",
           type: "image",
         },
         {
           name: "CONFIRM_ATTENDANCE_DESIGN.PNG",
-          url: "/public/projects/kdm/CONFIRM_ATTENDANCE_DESIGN.PNG",
+          url: "/projects/kdm/CONFIRM_ATTENDANCE_DESIGN.PNG",
           type: "image",
         },
       ],
@@ -258,12 +260,12 @@ export default function Projects() {
       files: [
         {
           name: "DEMO.GIF",
-          url: "/public/projects/mildos-landing/DEMO.GIF",
+          url: "/projects/mildos-landing/DEMO.GIF",
           type: "image",
         },
         {
           name: "LANDING_PAGE.PNG",
-          url: "/public/projects/mildos-landing/LANDING_PAGE.PNG",
+          url: "/projects/mildos-landing/LANDING_PAGE.PNG",
           type: "image",
         },
       ],
@@ -287,22 +289,22 @@ export default function Projects() {
       files: [
         {
           name: "HOME_SCREEN_DESIGN.PNG",
-          url: "/public/projects/mildos-ecommerce/HOME_SCREEN_DESIGN.PNG",
+          url: "/projects/mildos-ecommerce/HOME_SCREEN_DESIGN.PNG",
           type: "image",
         },
         {
           name: "BRAND_LIST_DESIGN.PNG",
-          url: "/public/projects/mildos-ecommerce/BRAND_LIST_DESIGN.PNG",
+          url: "/projects/mildos-ecommerce/BRAND_LIST_DESIGN.PNG",
           type: "image",
         },
         {
           name: "CHECK_OUT_DESIGN.PNG",
-          url: "/public/projects/mildos-ecommerce/CHECK_OUT_DESIGN.PNG",
+          url: "/projects/mildos-ecommerce/CHECK_OUT_DESIGN.PNG",
           type: "image",
         },
         {
           name: "ORDER_DETAIL_DESIGN.PNG",
-          url: "/public/projects/mildos-ecommerce/ORDER_DETAIL_DESIGN.PNG",
+          url: "/projects/mildos-ecommerce/ORDER_DETAIL_DESIGN.PNG",
           type: "image",
         },
       ],
