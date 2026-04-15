@@ -104,6 +104,7 @@ export default function Home() {
             >
               <Post
                 onClickOpenPost={(slug) => {
+                  setActivePostSlug(slug);
                   setCurrentMenu("post-detail");
                   window.history.pushState({}, "", `#/post/${slug}`);
                 }}
