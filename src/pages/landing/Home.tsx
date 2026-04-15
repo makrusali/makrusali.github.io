@@ -56,11 +56,11 @@ export default function Home() {
     <div>
       <Navbar
         onChangeMenu={(m) => {
+          setCurrentMenu(m);
+          window.history.pushState({}, "", `#/${m}`);
           window.scrollTo({
             top: 0,
           });
-          setCurrentMenu(m);
-          window.history.pushState({}, "", `#/${m}`);
         }}
       />
       <div className="h-16"></div>
@@ -107,12 +107,12 @@ export default function Home() {
             >
               <Post
                 onClickOpenPost={(slug) => {
-                  window.scrollTo({
-                    top: 0,
-                  });
                   setActivePostSlug(slug);
                   setCurrentMenu("post-detail");
                   window.history.pushState({}, "", `#/post/${slug}`);
+                  window.scrollTo({
+                    top: 0,
+                  });
                 }}
               />
               <Footer />
