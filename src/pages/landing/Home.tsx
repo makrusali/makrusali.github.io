@@ -11,8 +11,8 @@ export default function Home() {
   const [currentMenu, setCurrentMenu] = useState("home");
   useEffect(() => {
     (() => {
-      const path = window.location.pathname.replace("/", "") || "home";
-      setCurrentMenu(path);
+      const path = window.location.pathname.replace("/", "") || "#/home";
+      setCurrentMenu(path.replace("#", "").replace("/", ""));
     })();
   }, [setCurrentMenu]);
 
@@ -41,7 +41,7 @@ export default function Home() {
       <Navbar
         onChangeMenu={(m) => {
           setCurrentMenu(m);
-          window.history.pushState({}, "", `/${m}`);
+          window.history.pushState({}, "", `#/${m}`);
         }}
       />
       <div className="h-16"></div>
